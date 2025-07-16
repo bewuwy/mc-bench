@@ -22,20 +22,30 @@ process = subprocess.Popen(
     stdout=subprocess.PIPE,
     stderr=subprocess.STDOUT,
     text=True,
-    bufsize=1
+    bufsize=0,
+    env={**os.environ, "PYTHONUNBUFFERED": "1"}
 )
 
-for line in iter(process.stdout.readline, ''):
-    print(line.rstrip())
 
-    if "Done (" in line.rstrip():
-        print("Server is ready.")
+while True:
+    output = process.stdout.readline()
+    if output == '' and process.poll() is not None:
         break
+    if output:
+        print(output.rstrip(), flush=True)  # Force flush
+        
+        if "Done (" in output.rstrip():
+            print("Server is ready.", flush=True)
+            break
 
 process.stdin.write("stop\n")
 process.stdin.flush()
 
-for line in iter(process.stdout.readline, ''):
-    print(line.rstrip())
+while True:
+    output = process.stdout.readline()
+    if output == '' and process.poll() is not None:
+        break
+    if output:
+        print(output.rstrip(), flush=True)
 
 process.wait()
