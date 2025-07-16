@@ -1,7 +1,6 @@
 import os
 import shutil
 import subprocess
-import signal
 
 server_folder = "server"
 resources_folder = "resources"
@@ -33,5 +32,10 @@ for line in iter(process.stdout.readline, ''):
         print("Server is ready.")
         break
 
-process.send_signal(signal.SIGINT)
+process.stdin.write("stop\n")
+process.stdin.flush()
+
+for line in iter(process.stdout.readline, ''):
+    print(line.rstrip())
+
 process.wait()
